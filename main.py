@@ -1,38 +1,24 @@
 import streamlit as st
-from openai import OpenAI
+from langchain.llms import OpenAI
+from openai import AuthenticationError
 
-st.title("ChatGPT-like clone")
+st.title('🦜🔗 Quickstart App')
 
-# Set OpenAI API key from Streamlit secrets
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+openai_api_key = st.sidebar.text_input('OpenAI API Key', type='password')
 
-# Set a default model
-if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-3.5-turbo-0125"
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+def generate_response(input_text):
+    llm = OpenAI(temperature=0.7, openai_api_key=openai_api_key)
+    st.info(llm(input_text))
 
-# Display chat messages from history on app rerun
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
 
-# Accept user input
-if prompt := st.chat_input("What is up?"):
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    # Display user message in chat message container
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    # Display assistant response in chat message container
-    with st.chat_message("assistant"):
-        stream = client.chat.completions.create(
-            model=st.session_state["openai_model"],
-            messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-            stream=True,
-        )
-        response = st.write_stream(stream)
-    st.session_state.messages.append({"role": "assistant", "content": response})
+with st.form('my_form'):
+    text = st.text_area('Enter text:', 'What are the three key pieces of advice for learning how to code?')
+    submitted = st.form_submit_button('Submit')
+    if not openai_api_key.startswith('sk-'):
+        st.warning('Please enter your OpenAI API key!', icon='⚠')
+    if submitted and openai_api_key.startswith('sk-'):
+        try:
+            generate_response(text)
+        except AuthenticationError:
+            st.error('Please enter correct OpenAI API key!', icon='⚠')
