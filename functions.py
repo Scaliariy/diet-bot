@@ -83,7 +83,7 @@ def get_user_info(user_message: str, model: ChatOpenAI) -> UserInfo:
 
     # Handling an invalid user request
     if parsed_output['health_info'] == 'None' or parsed_output['health_info'] is None:
-        raise Exception("❗❗❗ Sorry, please write your request again. Please do it right ❗❗❗")
+        return 'Incorrect request'
 
     return parsed_output
 
@@ -170,25 +170,28 @@ def main(user_message, api_key, language):
     user_info = get_user_info(user_message, model_3_5)
     indications_list = [(i, diet['indications']) for i, diet in enumerate(diet_data_list_en)]
     indications_list.append((99, "If it doesn't exactly match any other."))
-    indication_info = get_indication_info(user_info, indications_list, model_3_5)
-    indication_index = int(indication_info['indication_index'])
-    if indication_index is not None:
-        temp = diet_data_list_en[indication_index].copy()
-        if 'indications' in temp:
-            temp.pop('indications')
-        if 'purpose' in temp:
-            temp.pop('purpose')
-        if 'eating_regime' in temp:
-            temp.pop('eating_regime')
+    if user_info != 'Incorrect request':
+        indication_info = get_indication_info(user_info, indications_list, model_3_5)
+        indication_index = int(indication_info['indication_index'])
+        if indication_index is not None:
+            temp = diet_data_list_en[indication_index].copy()
+            if 'indications' in temp:
+                temp.pop('indications')
+            if 'purpose' in temp:
+                temp.pop('purpose')
+            if 'eating_regime' in temp:
+                temp.pop('eating_regime')
+        else:
+            temp = user_info.copy()
+            temp['diet_name'] = f"General diet for '{user_info['health_info']}'"
+        diet_options = get_diet_options(temp, user_info, model_4)
+        if language == "Ukrainian ***:red[beta]***":
+            translated_diet_options = translate_dict(diet_options)
+            return translated_diet_options
+        else:
+            return diet_options
     else:
-        temp = user_info.copy()
-        temp['diet_name'] = f"General diet for '{user_info['health_info']}'"
-    diet_options = get_diet_options(temp, user_info, model_4)
-    if language == "Ukrainian ***:red[beta]***":
-        translated_diet_options = translate_dict(diet_options)
-        return translated_diet_options
-    else:
-        return diet_options
+        return 'Incorrect request'
 
 
 if __name__ == "__main__":

@@ -65,26 +65,29 @@ with st.form('my_form'):
 
 # Display result if available
 if st.session_state['result']:
-    st.write("**Created daily diet options:**")
-    result = st.session_state['result']
-    for i, menu in enumerate(result['menus']):
-        # Create tab for each menu option
-        with st.expander(f"**Menu {i + 1}**"):
-            st.write(f"***:red[Total Price]: {menu['total_price']} {menu['currency']}***")
-            for meal in menu['meals']:
-                st.subheader(f"{meal['description']}")
-                for dish in meal['dishes']:
-                    st.write(f"**:violet[Name]: {dish['name']}**")
-                    st.write(f"**:orange[Ingredients]:** {', '.join(dish['ingredients'])}")
-                    st.write(f"**:blue[Cooking Instructions]:** {dish['cooking_instructions']}")
-                    st.write(f"**:green[Price]:** {dish['price']} {menu['currency']}")
-                # Generate PDF button
-            if st.button(f"Generate PDF for Menu {i + 1}", key=f"generate-pdf-menu_{i + 1}"):
-                with st.spinner('Generating PDF...'):
-                    time.sleep(1)
-                    generate_pdf(menu, f"diet_plan_{i + 1}.pdf")
-                st.success(f"Generated diet_plan_{i + 1}.pdf!")
-                with open(f"diet_plan_{i + 1}.pdf", "rb") as f:
-                    st.download_button(f"Download pdf for Menu {i + 1}", f, f"diet_plan_{i + 1}.pdf",
-                                       key=f"download-pdf-menu_{i + 1}")
+    if st.session_state['result'] != 'Incorrect request':
+        st.write("**Created daily diet options:**")
+        result = st.session_state['result']
+        for i, menu in enumerate(result['menus']):
+            # Create tab for each menu option
+            with st.expander(f"**Menu {i + 1}**"):
+                st.write(f"***:red[Total Price]: {menu['total_price']} {menu['currency']}***")
+                for meal in menu['meals']:
+                    st.subheader(f"{meal['description']}")
+                    for dish in meal['dishes']:
+                        st.write(f"**:violet[Name]: {dish['name']}**")
+                        st.write(f"**:orange[Ingredients]:** {', '.join(dish['ingredients'])}")
+                        st.write(f"**:blue[Cooking Instructions]:** {dish['cooking_instructions']}")
+                        st.write(f"**:green[Price]:** {dish['price']} {menu['currency']}")
+                    # Generate PDF button
+                if st.button(f"Generate PDF for Menu {i + 1}", key=f"generate-pdf-menu_{i + 1}"):
+                    with st.spinner('Generating PDF...'):
+                        time.sleep(1)
+                        generate_pdf(menu, f"diet_plan_{i + 1}.pdf")
+                    st.success(f"Generated diet_plan_{i + 1}.pdf!")
+                    with open(f"diet_plan_{i + 1}.pdf", "rb") as f:
+                        st.download_button(f"Download pdf for Menu {i + 1}", f, f"diet_plan_{i + 1}.pdf",
+                                           key=f"download-pdf-menu_{i + 1}")
+    else:
+        st.error("❗❗❗ Sorry, please write your request again. Please do it right ❗❗❗")
 
